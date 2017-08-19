@@ -45,11 +45,11 @@ int main()
             if (latest_count[getSending(sequence[i]) - 1] >
                     latest_count[getReceiving(sequence[i]) - 1]) {
                 latest_count[getReceiving(sequence[i]) - 1] =
-                    latest_count[getSending(sequence[i]) - 1];
+                    latest_count[getSending(sequence[i]) - 1] + 1;
                 count_matrix[getReceiving(sequence[i]) -
                              1][event_counter[getReceiving(sequence[i]) -
                                               1]] =
-                                                  latest_count[getSending(sequence[i]) - 1];
+                                                  latest_count[getSending(sequence[i]) - 1] + 1;
                 event_counter[getReceiving(sequence[i]) - 1]++;
             } else {
                 ++latest_count[getReceiving(sequence[i]) - 1];
