@@ -1,20 +1,24 @@
+/* Author : Roopam Shukla
+Date : Aug 18, 2017 */
 #include<stdio.h>
 #include<stdlib.h>
 struct que_ele {
     int pname;
     int tstamp;
 } que_ele;
-int columns = 0, q_size = 0, flag = 0, count = 0, cp=0, cs=0;
+int columns = 0, q_size = 0, flag = 0, count = 0, cp = 0, cs = 0;
 struct que_ele *csq;
 int *latest_count, *event_counter, **count_matrix;
 void add_event(int p1, int p2, int *latest_count, int *event_counter,
                int **count_matrix, int processes)
 {
-    if (event_counter[p1 - 1] +1 >= columns || event_counter[p2 - 1] + 1  >= columns) {
+    if (event_counter[p1 - 1] + 1 >= columns
+            || event_counter[p2 - 1] + 1 >= columns) {
         ++columns;
         int i = 0;
         for (i = 0; i < processes; ++i)
-            count_matrix[i] = realloc(count_matrix[i], columns * sizeof(**count_matrix));
+            count_matrix[i] =
+                realloc(count_matrix[i], columns * sizeof(**count_matrix));
     }
     if (p2 == 0) {
         ++event_counter[p1 - 1];
@@ -39,41 +43,42 @@ void add_event(int p1, int p2, int *latest_count, int *event_counter,
             ++latest_count[p1 - 1];
             count_matrix[p1 - 1][event_counter[p1 - 1] - 1] =
                 latest_count[p1 - 1];
-        if (latest_count[p1 - 1] >= latest_count[p2 - 1]) {
-            ++event_counter[p2 - 1];
-            count_matrix[p2 - 1][event_counter[p2 - 1] - 1] =
-                latest_count[p1 - 1] + 1;
-            latest_count[p2 - 1] = latest_count[p1 - 1] + 1;
-        } else {
-            ++event_counter[p2 - 1];
-            ++latest_count[p2 - 1];
-            count_matrix[p2 - 1][event_counter[p2 - 1] - 1] =
-                latest_count[p2 - 1];
+            if (latest_count[p1 - 1] >= latest_count[p2 - 1]) {
+                ++event_counter[p2 - 1];
+                count_matrix[p2 - 1][event_counter[p2 - 1] - 1] =
+                    latest_count[p1 - 1] + 1;
+                latest_count[p2 - 1] = latest_count[p1 - 1] + 1;
+            } else {
+                ++event_counter[p2 - 1];
+                ++latest_count[p2 - 1];
+                count_matrix[p2 - 1][event_counter[p2 - 1] - 1] =
+                    latest_count[p2 - 1];
+            }
         }
-    }
     }
 }
 
-void release_section(){
-    int i=0;
-    if(q_size>0){
-    if(cs == 0){
-        cs = 1;
-        cp = csq[0].pname+1;
-        printf("\n*Process %d gets the CS.*\n\n",cp);
-        for(i=0;i<q_size-1;i++)
-        {
-            csq[i]=csq[i+1];
+void release_section()
+{
+    int i = 0;
+    if (q_size > 0) {
+        if (cs == 0) {
+            cs = 1;
+            cp = csq[0].pname + 1;
+            printf("\n*Process %d gets the CS.*\n\n", cp);
+            for (i = 0; i < q_size - 1; i++) {
+                csq[i] = csq[i + 1];
+            }
+            --q_size;
+            csq = realloc(csq, q_size * sizeof(que_ele));
+        } else {
+            printf("\n*Process %d is in CS.*\n\n", cp);
         }
-    --q_size;
-    csq = realloc(csq, q_size * sizeof(que_ele));
-    }else{
-        printf("\n*Process %d is in CS.*\n\n",cp);
-    }
-}else{
-    printf("\nCS is already free.\n\n");
+    } else {
+        printf("\nCS is free.\n\n");
     }
 }
+
 void request_section(int e, int *latest_count, int *event_counter,
                      int **count_matrix, int processes)
 {
@@ -86,33 +91,30 @@ void request_section(int e, int *latest_count, int *event_counter,
     add_event(e, 0, latest_count, event_counter, count_matrix, processes);
     for (i = 0; i < processes; i++) {
         if (i != e - 1)
-            add_event(e,i+1, latest_count, event_counter, count_matrix,
+            add_event(e, i + 1, latest_count, event_counter, count_matrix,
                       processes);
     }
     //reply
     flag = 0;
     for (i = 0; i < processes; i++) {
         if (i != e - 1)
-            add_event(i+1,e, latest_count, event_counter, count_matrix,
+            add_event(i + 1, e, latest_count, event_counter, count_matrix,
                       processes);
     }
-    for(i = 0;i < q_size; i++ )
-    {
-        if(que_ele.tstamp<=csq[i].tstamp)
-        {
+    for (i = 0; i < q_size; i++) {
+        if (que_ele.tstamp <= csq[i].tstamp) {
             cindex = i;
             break;
-        }else{
+        } else {
             cindex = i;
         }
     }
-    for(i=q_size-2;i>=cindex;--i)
-    {
-        csq[i+1]=csq[i];
+    for (i = q_size - 2; i >= cindex; --i) {
+        csq[i + 1] = csq[i];
     }
-    csq[cindex]=que_ele;
+    csq[cindex] = que_ele;
     release_section();
-    }
+}
 
 int main()
 {
@@ -123,7 +125,8 @@ int main()
     event_counter = malloc(processes * sizeof(*event_counter));
     count_matrix = malloc(processes * sizeof(*count_matrix));
 
-    for (i = 0; i < processes; ++i) count_matrix[i] = NULL;
+    for (i = 0; i < processes; ++i)
+        count_matrix[i] = NULL;
 
 //initialize stuff
     for (i = 0; i < processes; i++) {
@@ -162,7 +165,15 @@ int main()
             break;
         case 4:
             cs = 0;
+            flag = 1;
             release_section();
+            add_event(cp, 0, latest_count, event_counter, count_matrix,
+                      processes);
+            for (i = 0; i < processes; i++) {
+                if (i != e - 1)
+                    add_event(cp, i + 1, latest_count, event_counter,
+                              count_matrix, processes);
+            }
             break;
         case 5:
             for (i = 0; i < processes; i++) {
